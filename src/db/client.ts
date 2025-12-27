@@ -2,7 +2,6 @@ import { dirname } from "path";
 import { mkdirSync, existsSync } from "fs";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { config } from "@/config";
 import * as schema from "./schema";
 
@@ -19,6 +18,3 @@ sqlite.pragma("journal_mode = WAL");
 
 // Create Drizzle database instance
 export const db = drizzle(sqlite, { schema });
-
-// Run migrations
-migrate(db, { migrationsFolder: "./migrations" });
