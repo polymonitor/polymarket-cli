@@ -21,7 +21,7 @@ import {
   formatTimestamp,
   formatAverage,
 } from "./utils/format";
-import { formatError } from "./utils/errors";
+import { formatError, getExitCodeForError, EXIT_CODES } from "./utils/errors";
 
 /**
  * Interface for wallet statistics
@@ -54,7 +54,28 @@ export function createStatusCommand(
   db: BetterSQLite3Database<typeof schema>,
 ): Command {
   return new Command("status")
-    .description("Show system status and statistics")
+    .description("Display system status and database statistics")
+    .addHelpText(
+      "after",
+      `
+Examples:
+  $ npx polymarket-cli status
+
+Description:
+  Shows comprehensive system information including:
+  • Database connection status and file size
+  • Total number of snapshots and events
+  • Number of unique wallets being tracked
+  • Recent activity for tracked wallets
+
+  Useful for monitoring the system and verifying operation.
+
+Exit Codes:
+  0 - Success
+  1 - Database connection error
+  4 - Database error
+`,
+    )
     .action(async () => {
       await handleStatusCommand(repos, db);
     });
@@ -75,7 +96,7 @@ async function handleStatusCommand(
     const isConnected = await checkDatabaseConnection(db);
     if (!isConnected) {
       displayDatabaseError();
-      process.exit(1);
+      process.exit(EXIT_CODES.DATABASE_ERROR);
     }
 
     // Get database file info
@@ -95,7 +116,8 @@ async function handleStatusCommand(
     process.exit(0);
   } catch (error) {
     console.error("\n" + formatError(error));
-    process.exit(1);
+    const exitCode = getExitCodeForError(error);
+    process.exit(exitCode);
   }
 }
 

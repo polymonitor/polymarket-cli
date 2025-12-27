@@ -51,7 +51,8 @@ describe("formatNumber", () => {
   });
 
   it("should handle very large numbers", () => {
-    assert.strictEqual(formatNumber(1234567.89), "1234567.89");
+    // Large numbers are now formatted with M suffix
+    assert.strictEqual(formatNumber(1234567.89), "1.2M");
   });
 });
 
@@ -183,6 +184,7 @@ describe("formatEventSummary", () => {
       marketId: "market-1",
       marketTitle: "Test Market",
       snapshotId: 1,
+      timestamp: "2024-01-01T00:00:00.000Z",
       prevYesShares: null,
       prevNoShares: null,
       prevYesAvgPrice: null,
@@ -206,6 +208,7 @@ describe("formatEventSummary", () => {
       marketId: "market-1",
       marketTitle: "Test Market",
       snapshotId: 1,
+      timestamp: "2024-01-01T00:00:00.000Z",
       prevYesShares: null,
       prevNoShares: null,
       prevYesAvgPrice: null,
@@ -229,6 +232,7 @@ describe("formatEventSummary", () => {
       marketId: "market-1",
       marketTitle: "Test Market",
       snapshotId: 2,
+      timestamp: "2024-01-01T00:00:00.000Z",
       prevYesShares: 100,
       prevNoShares: 0,
       prevYesAvgPrice: 0.5,
@@ -252,6 +256,7 @@ describe("formatEventSummary", () => {
       marketId: "market-1",
       marketTitle: "Test Market",
       snapshotId: 3,
+      timestamp: "2024-01-01T00:00:00.000Z",
       prevYesShares: 100,
       prevNoShares: 0,
       prevYesAvgPrice: 0.5,
@@ -275,6 +280,7 @@ describe("formatEventSummary", () => {
       marketId: "market-1",
       marketTitle: "Test Market",
       snapshotId: 4,
+      timestamp: "2024-01-01T00:00:00.000Z",
       prevYesShares: 100,
       prevNoShares: 0,
       prevYesAvgPrice: 0.5,
@@ -299,6 +305,7 @@ describe("formatEventSummary", () => {
       marketId: "market-1",
       marketTitle: "Test Market",
       snapshotId: 4,
+      timestamp: "2024-01-01T00:00:00.000Z",
       prevYesShares: 0,
       prevNoShares: 100,
       prevYesAvgPrice: null,
@@ -325,6 +332,7 @@ describe("formatEventChange", () => {
       marketId: "market-1",
       marketTitle: "Test Market",
       snapshotId: 1,
+      timestamp: "2024-01-01T00:00:00.000Z",
       prevYesShares: null,
       prevNoShares: null,
       prevYesAvgPrice: null,
@@ -348,6 +356,7 @@ describe("formatEventChange", () => {
       marketId: "market-1",
       marketTitle: "Test Market",
       snapshotId: 3,
+      timestamp: "2024-01-01T00:00:00.000Z",
       prevYesShares: 100,
       prevNoShares: 0,
       prevYesAvgPrice: 0.5,
@@ -371,6 +380,7 @@ describe("formatEventChange", () => {
       marketId: "market-1",
       marketTitle: "Test Market",
       snapshotId: 2,
+      timestamp: "2024-01-01T00:00:00.000Z",
       prevYesShares: 100,
       prevNoShares: 0,
       prevYesAvgPrice: 0.5,
@@ -394,6 +404,7 @@ describe("formatEventChange", () => {
       marketId: "market-1",
       marketTitle: "Test Market",
       snapshotId: 4,
+      timestamp: "2024-01-01T00:00:00.000Z",
       prevYesShares: 100,
       prevNoShares: 0,
       prevYesAvgPrice: 0.5,

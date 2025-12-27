@@ -21,11 +21,43 @@ export function formatWalletAddress(address: string): string {
 /**
  * Formats a number with proper decimal places
  *
+ * Handles edge cases:
+ * - NaN (Not a Number)
+ * - Infinity and -Infinity
+ * - Very large numbers (> 1 trillion)
+ * - Very small numbers (< 0.0001)
+ *
  * @param value - Number to format
  * @param decimals - Number of decimal places (default: 2)
  * @returns Formatted string
  */
 export function formatNumber(value: number, decimals: number = 2): string {
+  // Handle NaN
+  if (isNaN(value)) {
+    return "N/A";
+  }
+
+  // Handle Infinity
+  if (!isFinite(value)) {
+    return value > 0 ? "∞" : "-∞";
+  }
+
+  // Handle very large numbers (>1 trillion)
+  if (Math.abs(value) >= 1_000_000_000_000) {
+    return `${(value / 1_000_000_000_000).toFixed(1)}T`;
+  }
+
+  // Handle very large numbers (>1 billion)
+  if (Math.abs(value) >= 1_000_000_000) {
+    return `${(value / 1_000_000_000).toFixed(1)}B`;
+  }
+
+  // Handle large numbers (>1 million)
+  if (Math.abs(value) >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1)}M`;
+  }
+
+  // Normal formatting
   return value.toFixed(decimals);
 }
 
@@ -209,33 +241,78 @@ export function createEventTable(event: WalletEvent): string {
 }
 
 /**
- * Truncates a market title if it's too long
+ * Truncates a market title if it's too long and sanitizes special characters
+ *
+ * Handles edge cases:
+ * - Very long titles
+ * - Special characters (newlines, tabs, etc.)
+ * - Empty or whitespace-only titles
+ * - Emoji and unicode characters
  *
  * @param title - Market title
  * @param maxLength - Maximum length (default: 50)
- * @returns Truncated title
+ * @returns Truncated and sanitized title
  */
 export function truncateTitle(title: string, maxLength: number = 50): string {
-  if (title.length <= maxLength) {
-    return title;
+  // Handle empty or whitespace-only titles
+  if (!title || title.trim().length === 0) {
+    return "(Empty title)";
   }
-  return title.slice(0, maxLength - 3) + "...";
+
+  // Replace newlines, tabs, and other control characters with spaces
+  let sanitized = title.replace(/[\n\r\t\v\f]/g, " ");
+
+  // Replace multiple consecutive spaces with a single space
+  sanitized = sanitized.replace(/\s+/g, " ");
+
+  // Trim whitespace
+  sanitized = sanitized.trim();
+
+  // Check if still empty after sanitization
+  if (sanitized.length === 0) {
+    return "(Empty title)";
+  }
+
+  // Truncate if necessary
+  if (sanitized.length <= maxLength) {
+    return sanitized;
+  }
+
+  // Truncate and add ellipsis
+  return sanitized.slice(0, maxLength - 3) + "...";
 }
 
 /**
  * Formats an ISO 8601 timestamp to a readable format
  *
+ * Handles edge cases:
+ * - Invalid date strings
+ * - Empty or null values
+ * - Invalid Date objects
+ *
  * @param isoString - ISO 8601 timestamp
  * @returns Formatted timestamp (e.g., "2024-12-27 10:30:00")
  */
 export function formatTimestamp(isoString: string): string {
+  // Handle empty or null values
+  if (!isoString || isoString.trim().length === 0) {
+    return "N/A";
+  }
+
   const date = new Date(isoString);
+
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return "Invalid Date";
+  }
+
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
   const seconds = String(date.getSeconds()).padStart(2, "0");
+
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 

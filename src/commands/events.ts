@@ -16,7 +16,7 @@ import {
   formatEventChange,
   truncateTitle,
 } from "./utils/format";
-import { formatError } from "./utils/errors";
+import { formatError, getExitCodeForError, EXIT_CODES } from "./utils/errors";
 
 /**
  * Command options
@@ -34,10 +34,43 @@ interface EventsCommandOptions {
  */
 export function createEventsCommand(eventRepository: EventRepository): Command {
   return new Command("events")
-    .description("List events for a wallet")
-    .argument("<wallet>", "Wallet address")
-    .option("-l, --limit <number>", "Limit number of events", "50")
-    .option("-v, --verbose", "Show detailed event data")
+    .description("View position change events for a wallet")
+    .argument("<wallet>", "Ethereum wallet address (0x + 40 hex characters)")
+    .option(
+      "-l, --limit <number>",
+      "Maximum number of events to display (default: 50)",
+      "50",
+    )
+    .option(
+      "-v, --verbose",
+      "Show detailed event data with before/after comparison",
+    )
+    .addHelpText(
+      "after",
+      `
+Examples:
+  $ npx polymarket-cli events 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
+  $ npx polymarket-cli events 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb --limit 100
+  $ npx polymarket-cli events 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb --verbose
+
+Description:
+  Retrieves and displays historical position change events for a wallet.
+  Events are shown in reverse chronological order (most recent first).
+
+  Event types:
+  • POSITION_OPENED - New position entered
+  • POSITION_INCREASED - Additional shares purchased
+  • POSITION_DECREASED - Shares sold/reduced
+  • POSITION_CLOSED - Position fully exited
+  • POSITION_RESOLVED - Market resolved, position settled
+
+Exit Codes:
+  0 - Success
+  1 - General error
+  2 - Invalid arguments
+  4 - Database error
+`,
+    )
     .action(async (wallet: string, options: EventsCommandOptions) => {
       await handleEventsCommand(wallet, options, eventRepository);
     });
@@ -67,7 +100,7 @@ async function handleEventsCommand(
       console.error(chalk.gray("  Limit must be a positive number."));
       console.error(chalk.gray("  Example: --limit 100"));
       console.error("");
-      process.exit(1);
+      process.exit(EXIT_CODES.INVALID_ARGUMENTS);
     }
 
     // Query events
@@ -86,8 +119,9 @@ async function handleEventsCommand(
     // Display formatted error
     console.error("\n" + formatError(error));
 
-    // Exit with error code
-    process.exit(1);
+    // Exit with appropriate error code
+    const exitCode = getExitCodeForError(error);
+    process.exit(exitCode);
   }
 }
 

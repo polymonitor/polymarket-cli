@@ -13,6 +13,7 @@ import { withRetry } from "./retry";
 import { transformToSnapshot, validateWalletAddress } from "./transformer";
 import { PolymarketMarket, PolymarketPosition } from "./types";
 import { logger } from "@/utils/logger";
+import type { IWalletPositionProvider } from "@/services/snapshot-service";
 
 /**
  * Configuration for PolymarketAPI client
@@ -35,7 +36,7 @@ export const DEFAULT_CONFIG: PolymarketAPIConfig = {
 /**
  * Client for interacting with Polymarket API
  */
-export class PolymarketAPI {
+export class PolymarketAPI implements IWalletPositionProvider {
   private readonly config: PolymarketAPIConfig;
 
   constructor(config: Partial<PolymarketAPIConfig> = {}) {
@@ -135,24 +136,91 @@ export class PolymarketAPI {
 
       // Handle non-2xx responses
       if (!response.ok) {
-        throw createUserFriendlyError(
-          response.status,
-          `HTTP ${response.status}: ${response.statusText}`,
-        );
+        // Try to get error details from response body
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorBody = await response.text();
+          if (errorBody && errorBody.length < 200) {
+            errorMessage = errorBody;
+          }
+        } catch {
+          // Ignore - use default message
+        }
+
+        throw createUserFriendlyError(response.status, errorMessage);
       }
 
       // Parse JSON response
-      const data = await response.json();
+      let data: unknown;
+      try {
+        data = await response.json();
+      } catch (error) {
+        throw new ValidationError(
+          "Invalid JSON response from Polymarket API",
+          error as Error,
+        );
+      }
+
+      // Validate response is not empty or null
+      if (data === null || data === undefined) {
+        throw new ValidationError(
+          "Empty response received from Polymarket API",
+        );
+      }
+
       return data as T;
     } catch (error) {
       // If it's already one of our custom errors, re-throw it
-      if (error instanceof Error && error.constructor.name.includes("Error")) {
+      if (
+        error instanceof Error &&
+        (error.name === "NetworkError" ||
+          error.name === "ValidationError" ||
+          error.name === "ClientError" ||
+          error.name === "ServerError" ||
+          error.name === "RateLimitError" ||
+          error.name === "PolymarketAPIError")
+      ) {
         throw error;
       }
 
-      // Otherwise, wrap as NetworkError
+      // Check for specific network error types
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      if (errorMessage.includes("ENOTFOUND")) {
+        throw new NetworkError(
+          "DNS lookup failed: Cannot resolve Polymarket API hostname",
+          error as Error,
+        );
+      }
+
+      if (errorMessage.includes("ECONNREFUSED")) {
+        throw new NetworkError(
+          "Connection refused: Cannot connect to Polymarket API",
+          error as Error,
+        );
+      }
+
+      if (
+        errorMessage.includes("ETIMEDOUT") ||
+        errorMessage.includes("timeout")
+      ) {
+        throw new NetworkError(
+          "Connection timeout: Polymarket API did not respond in time",
+          error as Error,
+        );
+      }
+
+      if (errorMessage.includes("ENETUNREACH")) {
+        throw new NetworkError(
+          "Network unreachable: Cannot reach Polymarket API",
+          error as Error,
+        );
+      }
+
+      // Generic network error
       throw new NetworkError(
-        "Failed to fetch from Polymarket API: network error",
+        "Failed to connect to Polymarket API",
         error as Error,
       );
     }

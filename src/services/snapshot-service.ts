@@ -6,11 +6,18 @@
  */
 
 import type { Snapshot, WalletEvent, DiffEvent } from "@/types/core";
-import type { PolymarketAPI } from "@/api";
 import type { Repositories } from "@/db/repositories";
 import { computeDiff } from "@/diff";
 import { validateWalletAddress } from "@/validation/validators";
 import { logger } from "@/utils/logger";
+
+/**
+ * Interface for fetching wallet positions
+ * This interface defines the contract for any API client that can provide wallet positions
+ */
+export interface IWalletPositionProvider {
+  getWalletPositions(wallet: string): Promise<Snapshot>;
+}
 
 /**
  * Result of taking a snapshot
@@ -32,7 +39,7 @@ export interface SnapshotResult {
  */
 export class SnapshotService {
   constructor(
-    private api: PolymarketAPI,
+    private api: IWalletPositionProvider,
     private repos: Repositories,
   ) {}
 

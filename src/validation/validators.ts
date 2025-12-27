@@ -37,18 +37,45 @@ function formatZodError(error: ZodError): string {
 }
 
 /**
- * Validates a wallet address
+ * Sanitizes and validates a wallet address
+ *
+ * Sanitization steps:
+ * - Trims leading/trailing whitespace
+ * - Removes any internal whitespace
+ * - Preserves case (for checksummed addresses)
+ *
  * @param address - The wallet address to validate
- * @returns The validated wallet address
+ * @returns The validated and sanitized wallet address (case preserved)
  * @throws ValidationError if the address is invalid
  */
 export function validateWalletAddress(address: string): string {
+  // Input validation - must be a string
+  if (typeof address !== "string") {
+    throw new ValidationError(
+      `Wallet address must be a string, received ${typeof address}`,
+    );
+  }
+
+  // Sanitize: trim whitespace and remove any internal spaces
+  let sanitized = address.trim();
+
+  // Remove any whitespace characters (spaces, tabs, newlines)
+  sanitized = sanitized.replace(/\s+/g, "");
+
+  // Empty after sanitization
+  if (sanitized.length === 0) {
+    throw new ValidationError(
+      "Wallet address cannot be empty or only whitespace",
+    );
+  }
+
+  // Validate with Zod schema
   try {
-    return walletAddressSchema.parse(address);
+    return walletAddressSchema.parse(sanitized);
   } catch (error) {
     if (error instanceof ZodError) {
       throw new ValidationError(
-        `Invalid wallet address '${address}'. ${formatZodError(error)}`,
+        `Invalid wallet address: '${sanitized}' is not a valid Ethereum address. Expected format: 0x followed by 40 hexadecimal characters.`,
         error,
       );
     }

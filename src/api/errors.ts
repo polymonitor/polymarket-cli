@@ -73,6 +73,53 @@ export class ValidationError extends PolymarketAPIError {
 }
 
 /**
+ * Database-related errors
+ */
+export class DatabaseError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: Error,
+  ) {
+    super(message);
+    this.name = "DatabaseError";
+    Object.setPrototypeOf(this, DatabaseError.prototype);
+  }
+}
+
+/**
+ * Database connection error
+ */
+export class DatabaseConnectionError extends DatabaseError {
+  constructor(message: string, cause?: Error) {
+    super(message, cause);
+    this.name = "DatabaseConnectionError";
+    Object.setPrototypeOf(this, DatabaseConnectionError.prototype);
+  }
+}
+
+/**
+ * Database transaction error
+ */
+export class DatabaseTransactionError extends DatabaseError {
+  constructor(message: string, cause?: Error) {
+    super(message, cause);
+    this.name = "DatabaseTransactionError";
+    Object.setPrototypeOf(this, DatabaseTransactionError.prototype);
+  }
+}
+
+/**
+ * Database constraint violation error
+ */
+export class DatabaseConstraintError extends DatabaseError {
+  constructor(message: string, cause?: Error) {
+    super(message, cause);
+    this.name = "DatabaseConstraintError";
+    Object.setPrototypeOf(this, DatabaseConstraintError.prototype);
+  }
+}
+
+/**
  * Creates user-friendly error messages from HTTP errors
  */
 export function createUserFriendlyError(

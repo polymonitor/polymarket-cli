@@ -3,6 +3,13 @@ import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { snapshots, events } from "@/db/schema";
 import type { Snapshot, DiffEvent } from "@/types/core";
 import * as schema from "@/db/schema";
+import {
+  DatabaseError,
+  DatabaseConnectionError,
+  DatabaseTransactionError,
+  DatabaseConstraintError,
+} from "@/api/errors";
+import { logger } from "@/utils/logger";
 
 /**
  * Repository for snapshot operations
@@ -18,8 +25,11 @@ export class SnapshotRepository {
    * @param snapshot The initial snapshot to save
    * @returns The generated snapshot ID
    * @throws Error if a snapshot already exists for this wallet
+   * @throws DatabaseError for database-related failures
    */
   async saveFirstSnapshot(snapshot: Snapshot): Promise<number> {
+    logger.debug(`Saving first snapshot for wallet ${snapshot.wallet}`);
+
     try {
       // Check if snapshot already exists for this wallet
       const existing = await this.db
@@ -29,9 +39,11 @@ export class SnapshotRepository {
         .limit(1);
 
       if (existing.length > 0) {
-        throw new Error(
+        const error = new DatabaseConstraintError(
           `Cannot save first snapshot: wallet ${snapshot.wallet} already has snapshots`,
         );
+        logger.error(`Failed to save first snapshot: ${error.message}`);
+        throw error;
       }
 
       // Save the snapshot (first snapshot has no predecessor)
@@ -45,16 +57,55 @@ export class SnapshotRepository {
         })
         .returning({ id: snapshots.id });
 
+      logger.info(
+        `First snapshot saved with ID ${result[0].id} for wallet ${snapshot.wallet}`,
+      );
       return result[0].id;
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.includes("already has snapshots")
-      ) {
+      // Re-throw our custom errors
+      if (error instanceof DatabaseError) {
         throw error;
       }
-      throw new Error(
-        `Failed to save first snapshot: ${error instanceof Error ? error.message : "Unknown error"}`,
+
+      // Check for SQLite specific errors
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      if (
+        errorMessage.includes("SQLITE_READONLY") ||
+        errorMessage.includes("readonly")
+      ) {
+        throw new DatabaseConnectionError(
+          "Database is read-only. Check file permissions.",
+          error as Error,
+        );
+      }
+
+      if (
+        errorMessage.includes("SQLITE_LOCKED") ||
+        errorMessage.includes("database is locked")
+      ) {
+        throw new DatabaseConnectionError(
+          "Database is locked. Another process may be using it.",
+          error as Error,
+        );
+      }
+
+      if (
+        errorMessage.includes("SQLITE_CONSTRAINT") ||
+        errorMessage.includes("UNIQUE constraint")
+      ) {
+        throw new DatabaseConstraintError(
+          "Database constraint violation",
+          error as Error,
+        );
+      }
+
+      // Generic database error
+      logger.error(`Database error saving first snapshot: ${errorMessage}`);
+      throw new DatabaseError(
+        `Failed to save first snapshot: ${errorMessage}`,
+        error as Error,
       );
     }
   }
@@ -69,6 +120,7 @@ export class SnapshotRepository {
    * @param diffEvents Array of DiffEvents (without snapshotId - will be assigned here)
    * @returns The generated snapshot ID
    * @throws Error if no events provided, or no previous snapshot exists
+   * @throws DatabaseError for database-related failures
    */
   async saveSnapshotWithEvents(
     snapshot: Snapshot,
@@ -80,6 +132,10 @@ export class SnapshotRepository {
         "Cannot save snapshot with events: at least one event is required. Use saveFirstSnapshot for snapshots without changes.",
       );
     }
+
+    logger.debug(
+      `Saving snapshot with ${diffEvents.length} events for wallet ${snapshot.wallet}`,
+    );
 
     try {
       // Check that previous snapshot exists and get its ID
@@ -134,8 +190,12 @@ export class SnapshotRepository {
         })),
       );
 
+      logger.info(
+        `Snapshot saved with ID ${snapshotId} and ${diffEvents.length} events for wallet ${snapshot.wallet}`,
+      );
       return snapshotId;
     } catch (error) {
+      // Re-throw validation errors
       if (
         error instanceof Error &&
         (error.message.includes("no previous snapshot exists") ||
@@ -143,8 +203,64 @@ export class SnapshotRepository {
       ) {
         throw error;
       }
-      throw new Error(
-        `Failed to save snapshot with events: ${error instanceof Error ? error.message : "Unknown error"}`,
+
+      // Re-throw our custom database errors
+      if (error instanceof DatabaseError) {
+        throw error;
+      }
+
+      // Check for SQLite specific errors
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      if (
+        errorMessage.includes("SQLITE_READONLY") ||
+        errorMessage.includes("readonly")
+      ) {
+        throw new DatabaseConnectionError(
+          "Database is read-only. Check file permissions.",
+          error as Error,
+        );
+      }
+
+      if (
+        errorMessage.includes("SQLITE_LOCKED") ||
+        errorMessage.includes("database is locked")
+      ) {
+        throw new DatabaseConnectionError(
+          "Database is locked. Another process may be using it.",
+          error as Error,
+        );
+      }
+
+      if (
+        errorMessage.includes("SQLITE_CONSTRAINT") ||
+        errorMessage.includes("constraint")
+      ) {
+        throw new DatabaseConstraintError(
+          "Database constraint violation during transaction",
+          error as Error,
+        );
+      }
+
+      // Transaction/rollback errors
+      if (
+        errorMessage.includes("rollback") ||
+        errorMessage.includes("transaction")
+      ) {
+        throw new DatabaseTransactionError(
+          "Transaction failed and was rolled back. No data was saved.",
+          error as Error,
+        );
+      }
+
+      // Generic database error
+      logger.error(
+        `Database error saving snapshot with events: ${errorMessage}`,
+      );
+      throw new DatabaseError(
+        `Failed to save snapshot with events: ${errorMessage}`,
+        error as Error,
       );
     }
   }
@@ -153,10 +269,13 @@ export class SnapshotRepository {
    * Get the latest snapshot for a wallet
    * @param wallet The wallet address
    * @returns The snapshot with its ID, or null if none exists
+   * @throws DatabaseError for database-related failures
    */
   async getLatest(
     wallet: string,
   ): Promise<{ id: number; snapshot: Snapshot } | null> {
+    logger.debug(`Fetching latest snapshot for wallet ${wallet}`);
+
     try {
       const result = await this.db
         .select({
@@ -169,16 +288,33 @@ export class SnapshotRepository {
         .limit(1);
 
       if (result.length === 0) {
+        logger.debug(`No snapshot found for wallet ${wallet}`);
         return null;
       }
 
+      logger.debug(`Found snapshot ID ${result[0].id} for wallet ${wallet}`);
       return {
         id: result[0].id,
         snapshot: result[0].snapshotData as Snapshot,
       };
     } catch (error) {
-      throw new Error(
-        `Failed to get latest snapshot: ${error instanceof Error ? error.message : "Unknown error"}`,
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      logger.error(`Database error fetching latest snapshot: ${errorMessage}`);
+
+      if (
+        errorMessage.includes("SQLITE_LOCKED") ||
+        errorMessage.includes("database is locked")
+      ) {
+        throw new DatabaseConnectionError(
+          "Database is locked. Another process may be using it.",
+          error as Error,
+        );
+      }
+
+      throw new DatabaseError(
+        `Failed to get latest snapshot: ${errorMessage}`,
+        error as Error,
       );
     }
   }
@@ -187,8 +323,11 @@ export class SnapshotRepository {
    * Get a snapshot by ID
    * @param id The snapshot ID
    * @returns The snapshot or null if not found
+   * @throws DatabaseError for database-related failures
    */
   async getById(id: number): Promise<Snapshot | null> {
+    logger.debug(`Fetching snapshot by ID ${id}`);
+
     try {
       const result = await this.db
         .select({
@@ -199,13 +338,29 @@ export class SnapshotRepository {
         .limit(1);
 
       if (result.length === 0) {
+        logger.debug(`No snapshot found with ID ${id}`);
         return null;
       }
 
       return result[0].snapshotData as Snapshot;
     } catch (error) {
-      throw new Error(
-        `Failed to get snapshot by ID: ${error instanceof Error ? error.message : "Unknown error"}`,
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      logger.error(`Database error fetching snapshot by ID: ${errorMessage}`);
+
+      if (
+        errorMessage.includes("SQLITE_LOCKED") ||
+        errorMessage.includes("database is locked")
+      ) {
+        throw new DatabaseConnectionError(
+          "Database is locked. Another process may be using it.",
+          error as Error,
+        );
+      }
+
+      throw new DatabaseError(
+        `Failed to get snapshot by ID: ${errorMessage}`,
+        error as Error,
       );
     }
   }

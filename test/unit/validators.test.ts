@@ -33,7 +33,7 @@ describe("validateWalletAddress", () => {
       () => validateWalletAddress("742d35Cc6634C0532925a3b844Bc9e7595f0bEbC"),
       {
         name: "ValidationError",
-        message: /Invalid wallet address format/,
+        message: /Invalid wallet address/,
       },
     );
   });
@@ -41,7 +41,7 @@ describe("validateWalletAddress", () => {
   it("should reject addresses with incorrect length", () => {
     assert.throws(() => validateWalletAddress("0x742d35Cc"), {
       name: "ValidationError",
-      message: /Invalid wallet address format/,
+      message: /Invalid wallet address/,
     });
   });
 
@@ -50,7 +50,7 @@ describe("validateWalletAddress", () => {
       () => validateWalletAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEg1"),
       {
         name: "ValidationError",
-        message: /Invalid wallet address format/,
+        message: /Invalid wallet address/,
       },
     );
   });
@@ -63,7 +63,7 @@ describe("validateWalletAddress", () => {
       assert.ok(error instanceof ValidationError);
       assert.match(error.message, /Invalid wallet address/);
       assert.match(error.message, /0x followed by 40 hexadecimal characters/);
-      assert.match(error.message, /Example:/);
+      // Updated message format no longer includes "Example:"
     }
   });
 });

@@ -16,7 +16,7 @@ import {
   createEventTable,
   truncateTitle,
 } from "./utils/format";
-import { formatError } from "./utils/errors";
+import { formatError, getExitCodeForError } from "./utils/errors";
 
 /**
  * Command options
@@ -35,9 +35,41 @@ export function createSnapshotCommand(
   snapshotService: SnapshotService,
 ): Command {
   return new Command("snapshot")
-    .description("Take a snapshot of a wallet")
-    .argument("<wallet>", "Wallet address to snapshot")
-    .option("-v, --verbose", "Show detailed output")
+    .description(
+      "Take a snapshot of a Polymarket wallet and detect position changes",
+    )
+    .argument(
+      "<wallet>",
+      "Ethereum wallet address to snapshot (0x + 40 hex characters)",
+    )
+    .option("-v, --verbose", "Show detailed output including full event data")
+    .addHelpText(
+      "after",
+      `
+Examples:
+  $ npx polymarket-cli snapshot 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
+  $ npx polymarket-cli snapshot 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb --verbose
+
+Description:
+  Fetches current positions from Polymarket, compares with the previous snapshot,
+  and generates events for any detected changes. The first snapshot for a wallet
+  will not generate events (it establishes the baseline).
+
+  Position changes detected:
+  • POSITION_OPENED - New position in a market
+  • POSITION_INCREASED - Added shares to existing position
+  • POSITION_DECREASED - Reduced shares in existing position
+  • POSITION_CLOSED - Fully exited a position
+  • POSITION_RESOLVED - Market resolved, position settled
+
+Exit Codes:
+  0 - Success
+  1 - General error (network, API, validation)
+  2 - Invalid arguments
+  3 - API error
+  4 - Database error
+`,
+    )
     .action(async (wallet: string, options: SnapshotCommandOptions) => {
       await handleSnapshotCommand(wallet, options, snapshotService);
     });
@@ -76,8 +108,9 @@ async function handleSnapshotCommand(
     // Display formatted error
     console.error("\n" + formatError(error));
 
-    // Exit with error code
-    process.exit(1);
+    // Exit with appropriate error code
+    const exitCode = getExitCodeForError(error);
+    process.exit(exitCode);
   }
 }
 
