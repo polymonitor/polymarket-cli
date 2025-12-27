@@ -240,6 +240,48 @@ export function formatTimestamp(isoString: string): string {
 }
 
 /**
+ * Formats file size in bytes to human-readable format
+ *
+ * @param bytes - File size in bytes
+ * @returns Formatted size (e.g., "1.2 KB", "3.4 MB", "1.2 GB")
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  } else if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  } else if (bytes < 1024 * 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  } else {
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  }
+}
+
+/**
+ * Formats a number with thousand separators
+ *
+ * @param num - Number to format
+ * @returns Formatted number (e.g., "1,247")
+ */
+export function formatNumberWithCommas(num: number): string {
+  return num.toLocaleString("en-US");
+}
+
+/**
+ * Calculates and formats an average
+ *
+ * @param total - Total value
+ * @param count - Count of items
+ * @returns Formatted average (e.g., "3.1 avg")
+ */
+export function formatAverage(total: number, count: number): string {
+  if (count === 0) {
+    return "0 avg";
+  }
+  return `${(total / count).toFixed(1)} avg`;
+}
+
+/**
  * Formats the "Change" column for the events table
  *
  * @param event - Wallet event
