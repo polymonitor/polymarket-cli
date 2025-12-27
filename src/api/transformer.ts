@@ -2,8 +2,8 @@
  * Transforms Polymarket API responses to our internal Snapshot format
  */
 
-import { PolymarketPosition } from "./types.js";
-import { Position, Snapshot } from "@/types/core.js";
+import { PolymarketPosition } from "./types";
+import { Position, Snapshot } from "@/types/core";
 
 /**
  * Transforms Polymarket API positions into a Snapshot

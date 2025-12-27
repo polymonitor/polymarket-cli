@@ -4,12 +4,9 @@
 
 import { describe, it, mock } from "node:test";
 import assert from "node:assert";
-import {
-  transformToSnapshot,
-  validateWalletAddress,
-} from "@/api/transformer.js";
-import type { PolymarketPosition } from "@/api/types.js";
-import { withRetry, DEFAULT_RETRY_CONFIG } from "@/api/retry.js";
+import { transformToSnapshot, validateWalletAddress } from "@/api/transformer";
+import type { PolymarketPosition } from "@/api/types";
+import { withRetry, DEFAULT_RETRY_CONFIG } from "@/api/retry";
 import {
   NetworkError,
   ServerError,
@@ -17,8 +14,8 @@ import {
   RateLimitError,
   ValidationError,
   createUserFriendlyError,
-} from "@/api/errors.js";
-import { PolymarketAPI } from "@/api/polymarket-client.js";
+} from "@/api/errors";
+import { PolymarketAPI } from "@/api/polymarket-client";
 
 describe("validateWalletAddress", () => {
   it("should accept valid wallet addresses", () => {

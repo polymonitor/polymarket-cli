@@ -3,12 +3,7 @@
  */
 
 import { z } from "zod";
-import type {
-  EventType,
-  Position,
-  Snapshot,
-  WalletEvent,
-} from "@/types/core.js";
+import type { EventType, Position, Snapshot, WalletEvent } from "@/types/core";
 
 /**
  * Validates Ethereum wallet addresses

@@ -3,7 +3,7 @@
  */
 
 import { describe, it } from "node:test";
-import type { Position, Snapshot, WalletEvent } from "@/types/core.js";
+import type { Position, Snapshot, WalletEvent } from "@/types/core";
 import assert from "node:assert";
 import {
   validateWalletAddress,
@@ -11,7 +11,7 @@ import {
   validateSnapshot,
   validateWalletEvent,
   ValidationError,
-} from "@/validation/validators.js";
+} from "@/validation/validators";
 
 describe("validateWalletAddress", () => {
   it("should accept valid wallet addresses", () => {

@@ -2,8 +2,8 @@
  * Retry logic with exponential backoff for API requests
  */
 
-import { logger } from "@/utils/logger.js";
-import { NetworkError, RateLimitError, ServerError } from "./errors.js";
+import { logger } from "@/utils/logger";
+import { NetworkError, RateLimitError, ServerError } from "./errors";
 
 export interface RetryConfig {
   maxRetries: number;

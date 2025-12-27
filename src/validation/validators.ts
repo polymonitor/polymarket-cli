@@ -4,13 +4,13 @@
  */
 
 import { ZodError } from "zod";
-import type { Position, Snapshot, WalletEvent } from "@/types/core.js";
+import type { Position, Snapshot, WalletEvent } from "@/types/core";
 import {
   positionSchema,
   snapshotSchema,
   walletAddressSchema,
   walletEventSchema,
-} from "@/validation/schemas.js";
+} from "@/validation/schemas";
 
 /**
  * Custom error class for validation failures

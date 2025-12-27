@@ -2,17 +2,17 @@
  * Polymarket API client for fetching wallet positions and market data
  */
 
-import { Snapshot } from "@/types/core.js";
-import { snapshotSchema } from "@/validation/schemas.js";
+import { Snapshot } from "@/types/core";
+import { snapshotSchema } from "@/validation/schemas";
 import {
   createUserFriendlyError,
   NetworkError,
   ValidationError,
-} from "./errors.js";
-import { withRetry } from "./retry.js";
-import { transformToSnapshot, validateWalletAddress } from "./transformer.js";
-import { PolymarketMarket, PolymarketPosition } from "./types.js";
-import { logger } from "@/utils/logger.js";
+} from "./errors";
+import { withRetry } from "./retry";
+import { transformToSnapshot, validateWalletAddress } from "./transformer";
+import { PolymarketMarket, PolymarketPosition } from "./types";
+import { logger } from "@/utils/logger";
 
 /**
  * Configuration for PolymarketAPI client
