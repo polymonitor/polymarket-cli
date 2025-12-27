@@ -1,0 +1,63 @@
+/**
+ * Core type definitions for Polymarket wallet snapshot tracking
+ */
+
+/**
+ * Represents a position in a prediction market
+ */
+export interface Position {
+  marketId: string;
+  marketTitle: string;
+  yesShares: number;
+  noShares: number;
+  yesAvgPrice: number | null;
+  noAvgPrice: number | null;
+  resolvedOutcome: "yes" | "no" | "invalid" | "unresolved";
+}
+
+/**
+ * Represents a snapshot of all positions for a wallet at a point in time
+ */
+export interface Snapshot {
+  wallet: string;
+  timestamp: string; // ISO 8601
+  positions: Position[];
+}
+
+/**
+ * Types of events that can occur when comparing snapshots
+ */
+export type EventType =
+  | "POSITION_OPENED"
+  | "POSITION_UPDATED"
+  | "POSITION_CLOSED"
+  | "MARKET_RESOLVED";
+
+/**
+ * Represents a change event detected between snapshots
+ * Events are self-contained with complete before/after state
+ */
+export interface WalletEvent {
+  eventId: string; // UUID
+  wallet: string;
+  eventType: EventType;
+  marketId: string;
+  marketTitle: string;
+  snapshotId: number; // References snapshot that created this event
+
+  // Before state (null if position opened)
+  prevYesShares: number | null;
+  prevNoShares: number | null;
+  prevYesAvgPrice: number | null;
+  prevNoAvgPrice: number | null;
+
+  // After state (null if position closed)
+  currYesShares: number | null;
+  currNoShares: number | null;
+  currYesAvgPrice: number | null;
+  currNoAvgPrice: number | null;
+
+  // Resolution state and PnL
+  resolvedOutcome: "yes" | "no" | "invalid" | "unresolved";
+  pnl?: number;
+}

@@ -6,7 +6,8 @@
     "polymarket-cli": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
     "better-sqlite3": "^12.5.0",
