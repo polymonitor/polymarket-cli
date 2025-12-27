@@ -5,6 +5,9 @@ export const snapshots = sqliteTable("snapshots", {
   wallet: text("wallet").notNull(),
   snapshotData: text("snapshot_data", { mode: "json" }).notNull(),
   timestamp: text("timestamp").notNull(),
+  prevSnapshotId: integer("prev_snapshot_id").references(
+    (): any => snapshots.id,
+  ),
 });
 
 export const events = sqliteTable("events", {

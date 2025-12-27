@@ -48,8 +48,10 @@ npx polymarket-cli status
 1. **Commands are thin**: Only parse input, call services, format output
 2. **Diff function is pure**: No side effects, no external dependencies, fully testable
 3. **Events are self-contained**: Each event has all data needed to understand the change
-4. **Database integrity**: Snapshots + events saved in single transaction
-5. **No saves without changes**: Only save snapshot if events generated (except first snapshot)
+4. **Database integrity**: Two atomic operations enforced by repository API
+   - `saveFirstSnapshot()` - Initialize tracking (errors if wallet already tracked)
+   - `saveSnapshotWithEvents()` - Save snapshot + events together (errors if no previous snapshot or no events)
+5. **Type-safe data access**: Repository methods enforce business rules at the API level
 
 ## Database Schema
 
@@ -59,6 +61,7 @@ npx polymarket-cli status
 - wallet (text)
 - snapshot_data (JSON)
 - timestamp (ISO 8601)
+- prev_snapshot_id (nullable FK to snapshots.id) - Creates blockchain-like chain of snapshots
 
 **events table:**
 

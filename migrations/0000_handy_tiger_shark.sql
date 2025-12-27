@@ -22,5 +22,7 @@ CREATE TABLE `snapshots` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`wallet` text NOT NULL,
 	`snapshot_data` text NOT NULL,
-	`timestamp` text NOT NULL
+	`timestamp` text NOT NULL,
+	`prev_snapshot_id` integer,
+	FOREIGN KEY (`prev_snapshot_id`) REFERENCES `snapshots`(`id`) ON UPDATE no action ON DELETE no action
 );

@@ -21,7 +21,6 @@ class SnapshotService {
   constructor(
     private api: PolymarketAPI,
     private repos: Repositories,
-    private db: Database, // For transactions
   ) {}
 
   async takeSnapshot(wallet: string): Promise<SnapshotResult> {
@@ -65,30 +64,43 @@ Implement `takeSnapshot()` method with this flow:
 
 **5. Decide Whether to Save**
 
-- **First snapshot**: Always save (even with no events)
+- **First snapshot**: Use `saveFirstSnapshot()` - saves snapshot with prev_snapshot_id = NULL
 - **Subsequent snapshot with no events**: Don't save, return early
-- **Subsequent snapshot with events**: Save in transaction
+- **Subsequent snapshot with events**: Use `saveSnapshotWithEvents()` - atomically saves snapshot + events
 
-**6. Save Atomically (if needed)**
+**6. Save Using Repository Methods**
 
-If saving (first snapshot or events generated):
+The repository layer handles atomicity and validation:
 
 ```typescript
-await this.db.transaction(async (tx) => {
-  // 1. Insert current snapshot, get ID
-  const snapshotId = await this.repos.snapshots.save(currentSnapshot);
+if (prevSnapshot === null) {
+  // First snapshot - no events
+  const snapshotId =
+    await this.repos.snapshots.saveFirstSnapshot(currentSnapshot);
+  return {
+    snapshot: currentSnapshot,
+    events: [],
+    isFirstSnapshot: true,
+    saved: true,
+  };
+}
 
-  // 2. Add snapshotId to all events
-  const eventsWithSnapshotId = events.map((e) => ({
-    ...e,
-    snapshotId,
-  }));
+if (events.length === 0) {
+  // No changes detected - don't save
+  return {
+    snapshot: currentSnapshot,
+    events: [],
+    isFirstSnapshot: false,
+    saved: false,
+  };
+}
 
-  // 3. Insert all events
-  if (events.length > 0) {
-    await this.repos.events.save(eventsWithSnapshotId);
-  }
-});
+// Changes detected - save snapshot with events atomically
+// Repository sets prev_snapshot_id to link snapshots in blockchain-like chain
+const snapshotId = await this.repos.snapshots.saveSnapshotWithEvents(
+  currentSnapshot,
+  events,
+);
 ```
 
 **7. Return Result**
@@ -149,14 +161,16 @@ Add logging throughout:
 - Log transaction success
 - Log all errors with context
 
-### Transaction Integrity
+### Atomicity and Chain Integrity
 
-Critical: Snapshot and events MUST be saved together atomically:
+The repository layer ensures:
 
-- Use database transaction
-- If snapshot save fails, no events saved
-- If events save fails, snapshot rolled back
-- All or nothing - maintains data integrity
+- **Atomicity**: Snapshot + events saved together via `saveSnapshotWithEvents()`
+- **Chain integrity**: Each snapshot (except first) has `prev_snapshot_id` pointing to its predecessor
+- **Validation**: Repository methods enforce preconditions (can't save first snapshot twice, can't save events without previous snapshot)
+- **Database constraints**: Foreign keys ensure chain can never be broken
+
+The service delegates all transaction handling to the repository layer.
 
 ## Acceptance Criteria
 
@@ -164,11 +178,11 @@ Critical: Snapshot and events MUST be saved together atomically:
 - [ ] Service fetches current state from API
 - [ ] Service retrieves previous snapshot from database
 - [ ] Service calls diff function correctly
-- [ ] First snapshot always saved (even with no events)
+- [ ] First snapshot saved using `saveFirstSnapshot()` (sets prev_snapshot_id = NULL)
 - [ ] Subsequent snapshots with no events are NOT saved
-- [ ] Subsequent snapshots with events ARE saved
-- [ ] Snapshot and events saved in single atomic transaction
-- [ ] Transaction failures handled gracefully
+- [ ] Subsequent snapshots with events saved using `saveSnapshotWithEvents()` (sets prev_snapshot_id)
+- [ ] Repository handles atomicity (service doesn't manage transactions directly)
+- [ ] Repository validation errors handled gracefully
 - [ ] API errors propagated with clear messages
 - [ ] All operations logged appropriately
 - [ ] Returns complete result with all metadata

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "334e1496-d087-4496-9d65-f6abcabceb43",
+  "id": "14edeb94-eb9f-4560-8fc3-568d1b3c9334",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "events": {
@@ -166,10 +166,27 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "prev_snapshot_id": {
+          "name": "prev_snapshot_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "snapshots_prev_snapshot_id_snapshots_id_fk": {
+          "name": "snapshots_prev_snapshot_id_snapshots_id_fk",
+          "tableFrom": "snapshots",
+          "tableTo": "snapshots",
+          "columnsFrom": ["prev_snapshot_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
