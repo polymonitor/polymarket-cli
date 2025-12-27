@@ -5,6 +5,10 @@ export const config = {
     path: process.env.DB_PATH || "./data/polymarket.db",
   },
   polymarket: {
-    apiUrl: process.env.POLYMARKET_API_URL || "https://api.polymarket.com",
+    dataApiUrl:
+      process.env.POLYMARKET_DATA_API_URL || "https://data-api.polymarket.com",
+    gammaApiUrl:
+      process.env.POLYMARKET_GAMMA_API_URL ||
+      "https://gamma-api.polymarket.com",
   },
 };
