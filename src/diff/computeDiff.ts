@@ -6,7 +6,7 @@
  * changes between Polymarket wallet snapshots.
  */
 
-import type { EventType, Position, Snapshot, WalletEvent } from "@/types/core";
+import type { DiffEvent, EventType, Position, Snapshot } from "@/types/core";
 
 /**
  * Computes the difference between two wallet snapshots and generates events.
@@ -19,7 +19,7 @@ import type { EventType, Position, Snapshot, WalletEvent } from "@/types/core";
  *
  * @param prevSnapshot - Previous wallet snapshot (N-1), or null for first snapshot
  * @param currSnapshot - Current wallet snapshot (N)
- * @returns Array of events representing all changes (without snapshotId)
+ * @returns Array of DiffEvents (events without snapshotId - assigned by repository)
  *
  * @example
  * ```typescript
@@ -36,13 +36,13 @@ import type { EventType, Position, Snapshot, WalletEvent } from "@/types/core";
 export function computeDiff(
   prevSnapshot: Snapshot | null,
   currSnapshot: Snapshot,
-): Omit<WalletEvent, "snapshotId">[] {
+): DiffEvent[] {
   // Handle first snapshot - no events to generate
   if (prevSnapshot === null) {
     return [];
   }
 
-  const events: Omit<WalletEvent, "snapshotId">[] = [];
+  const events: DiffEvent[] = [];
 
   // Create position maps indexed by marketId for efficient lookups
   const prevPositions = new Map(
@@ -138,7 +138,7 @@ export function computeDiff(
  * @param marketTitle - Market title for context
  * @param prev - Previous position (null if opened)
  * @param curr - Current position (null if closed)
- * @returns Event object without snapshotId
+ * @returns DiffEvent (event without snapshotId)
  */
 function createEvent(
   type: EventType,
@@ -147,7 +147,7 @@ function createEvent(
   marketTitle: string,
   prev: Position | null,
   curr: Position | null,
-): Omit<WalletEvent, "snapshotId"> {
+): DiffEvent {
   return {
     eventId: crypto.randomUUID(),
     wallet,

@@ -1,7 +1,7 @@
 import { eq, desc } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { snapshots, events } from "@/db/schema";
-import type { Snapshot, WalletEvent } from "@/types/core";
+import type { Snapshot, DiffEvent } from "@/types/core";
 import * as schema from "@/db/schema";
 
 /**
@@ -66,16 +66,16 @@ export class SnapshotRepository {
    * IMPORTANT: Uses a transaction to ensure atomicity - both snapshot and events are saved together or neither is saved
    *
    * @param snapshot The new snapshot to save
-   * @param walletEvents Array of events detected (must have at least one event)
+   * @param diffEvents Array of DiffEvents (without snapshotId - will be assigned here)
    * @returns The generated snapshot ID
    * @throws Error if no events provided, or no previous snapshot exists
    */
   async saveSnapshotWithEvents(
     snapshot: Snapshot,
-    walletEvents: WalletEvent[],
+    diffEvents: DiffEvent[],
   ): Promise<number> {
     // Validate preconditions
-    if (walletEvents.length === 0) {
+    if (diffEvents.length === 0) {
       throw new Error(
         "Cannot save snapshot with events: at least one event is required. Use saveFirstSnapshot for snapshots without changes.",
       );
@@ -112,15 +112,15 @@ export class SnapshotRepository {
 
       const snapshotId = result[0].id;
 
-      // Save all events
+      // Save all events - assign snapshotId to each DiffEvent
       await this.db.insert(events).values(
-        walletEvents.map((event) => ({
+        diffEvents.map((event) => ({
           id: event.eventId,
           wallet: event.wallet,
           eventType: event.eventType,
           marketId: event.marketId,
           marketTitle: event.marketTitle,
-          snapshotId: snapshotId,
+          snapshotId: snapshotId, // Assign snapshotId here
           prevYesShares: event.prevYesShares,
           prevNoShares: event.prevNoShares,
           prevYesAvgPrice: event.prevYesAvgPrice,
