@@ -6,6 +6,7 @@ import { createRepositories } from "@/db/repositories";
 import { PolymarketAPI } from "@/api";
 import { SnapshotService } from "@/services";
 import { createSnapshotCommand } from "@/commands/snapshot";
+import { createEventsCommand } from "@/commands/events";
 import { config } from "@/config";
 
 // Initialize dependencies
@@ -26,5 +27,6 @@ program
 
 // Register commands
 program.addCommand(createSnapshotCommand(snapshotService));
+program.addCommand(createEventsCommand(repositories.events));
 
 program.parse();

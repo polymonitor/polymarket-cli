@@ -223,6 +223,7 @@ describe("validateWalletEvent", () => {
     marketId: "market123",
     marketTitle: "Will it rain tomorrow?",
     snapshotId: 1,
+    timestamp: "2024-12-27T10:30:00.000Z",
     prevYesShares: 5.0,
     prevNoShares: 2.5,
     prevYesAvgPrice: 0.6,

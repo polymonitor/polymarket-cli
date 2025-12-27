@@ -61,6 +61,7 @@ function createTestEvent(wallet: string, marketId: string): WalletEvent {
     marketId,
     marketTitle: "Test Market",
     snapshotId: 0, // Will be set by repository
+    timestamp: new Date().toISOString(),
     prevYesShares: null,
     prevNoShares: null,
     prevYesAvgPrice: null,

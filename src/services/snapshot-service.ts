@@ -123,10 +123,11 @@ export class SnapshotService {
         diffEvents,
       );
 
-      // Attach snapshotId to events for return value
+      // Attach snapshotId and timestamp to events for return value
       const events: WalletEvent[] = diffEvents.map((event) => ({
         ...event,
         snapshotId,
+        timestamp: currentSnapshot.timestamp,
       }));
 
       logger.info(

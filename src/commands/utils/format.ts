@@ -221,3 +221,139 @@ export function truncateTitle(title: string, maxLength: number = 50): string {
   }
   return title.slice(0, maxLength - 3) + "...";
 }
+
+/**
+ * Formats an ISO 8601 timestamp to a readable format
+ *
+ * @param isoString - ISO 8601 timestamp
+ * @returns Formatted timestamp (e.g., "2024-12-27 10:30:00")
+ */
+export function formatTimestamp(isoString: string): string {
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Formats the "Change" column for the events table
+ *
+ * @param event - Wallet event
+ * @returns Change summary (e.g., "+150 YES shares", "100→200 YES shares")
+ */
+export function formatEventChange(event: WalletEvent): string {
+  const {
+    eventType,
+    prevYesShares,
+    prevNoShares,
+    prevYesAvgPrice,
+    prevNoAvgPrice,
+    currYesShares,
+    currNoShares,
+    currYesAvgPrice,
+    currNoAvgPrice,
+    resolvedOutcome,
+    pnl,
+  } = event;
+
+  switch (eventType) {
+    case "POSITION_OPENED": {
+      const yesShares = currYesShares ?? 0;
+      const noShares = currNoShares ?? 0;
+
+      if (yesShares > 0 && noShares > 0) {
+        return `+${formatShares(yesShares)} YES, +${formatShares(noShares)} NO shares`;
+      } else if (yesShares > 0) {
+        return `+${formatShares(yesShares)} YES shares`;
+      } else {
+        return `+${formatShares(noShares)} NO shares`;
+      }
+    }
+
+    case "POSITION_UPDATED": {
+      const prevYes = prevYesShares ?? 0;
+      const currYes = currYesShares ?? 0;
+      const prevNo = prevNoShares ?? 0;
+      const currNo = currNoShares ?? 0;
+      const prevYesPrice = prevYesAvgPrice;
+      const currYesPrice = currYesAvgPrice;
+      const prevNoPrice = prevNoAvgPrice;
+      const currNoPrice = currNoAvgPrice;
+
+      const parts: string[] = [];
+
+      // Check if shares changed
+      const sharesChanged = prevYes !== currYes || prevNo !== currNo;
+      // Check if only price changed
+      const onlyPriceChanged =
+        !sharesChanged &&
+        (prevYesPrice !== currYesPrice || prevNoPrice !== currNoPrice);
+
+      if (onlyPriceChanged) {
+        // Only price changed
+        if (prevYesPrice !== currYesPrice && currYesPrice !== null) {
+          return `${formatPrice(prevYesPrice)}→${formatPrice(currYesPrice)} YES avg price`;
+        } else if (prevNoPrice !== currNoPrice && currNoPrice !== null) {
+          return `${formatPrice(prevNoPrice)}→${formatPrice(currNoPrice)} NO avg price`;
+        }
+      }
+
+      // Shares changed (with or without price change)
+      if (prevYes !== currYes) {
+        if (prevYesPrice !== currYesPrice && currYesPrice !== null) {
+          parts.push(
+            `${formatShares(prevYes)}→${formatShares(currYes)} YES, ${formatPrice(prevYesPrice)}→${formatPrice(currYesPrice)}`,
+          );
+        } else {
+          parts.push(
+            `${formatShares(prevYes)}→${formatShares(currYes)} YES shares`,
+          );
+        }
+      }
+
+      if (prevNo !== currNo) {
+        if (prevNoPrice !== currNoPrice && currNoPrice !== null) {
+          parts.push(
+            `${formatShares(prevNo)}→${formatShares(currNo)} NO, ${formatPrice(prevNoPrice)}→${formatPrice(currNoPrice)}`,
+          );
+        } else {
+          parts.push(
+            `${formatShares(prevNo)}→${formatShares(currNo)} NO shares`,
+          );
+        }
+      }
+
+      return parts.join(", ");
+    }
+
+    case "POSITION_CLOSED": {
+      const yesShares = prevYesShares ?? 0;
+      const noShares = prevNoShares ?? 0;
+
+      if (yesShares > 0 && noShares > 0) {
+        return `-${formatShares(yesShares)} YES, -${formatShares(noShares)} NO shares`;
+      } else if (yesShares > 0) {
+        return `-${formatShares(yesShares)} YES shares`;
+      } else {
+        return `-${formatShares(noShares)} NO shares`;
+      }
+    }
+
+    case "MARKET_RESOLVED": {
+      const outcome = resolvedOutcome.toUpperCase();
+      const pnlValue = pnl ?? 0;
+      const pnlStr =
+        pnlValue >= 0
+          ? `+$${formatNumber(pnlValue, 2)}`
+          : `-$${formatNumber(Math.abs(pnlValue), 2)}`;
+      return `${outcome} won, ${pnlStr}`;
+    }
+
+    default:
+      return "Unknown";
+  }
+}

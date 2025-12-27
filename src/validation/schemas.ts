@@ -83,6 +83,8 @@ export const walletEventSchema = z.object({
     .int()
     .positive({ error: "Snapshot ID must be a positive integer" }),
 
+  timestamp: z.string().datetime(),
+
   // Before state
   prevYesShares: z.number().nonnegative().nullable(),
   prevNoShares: z.number().nonnegative().nullable(),

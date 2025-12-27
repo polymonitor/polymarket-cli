@@ -62,6 +62,7 @@ export class EventRepository {
         currNoAvgPrice: row.currNoAvgPrice,
         resolvedOutcome: row.resolvedOutcome as WalletEvent["resolvedOutcome"],
         pnl: row.pnl ?? undefined,
+        timestamp: row.timestamp,
       }));
     } catch (error) {
       throw new Error(
@@ -119,6 +120,7 @@ export class EventRepository {
         currNoAvgPrice: row.currNoAvgPrice,
         resolvedOutcome: row.resolvedOutcome as WalletEvent["resolvedOutcome"],
         pnl: row.pnl ?? undefined,
+        timestamp: row.timestamp,
       }));
     } catch (error) {
       throw new Error(
