@@ -123,15 +123,11 @@ npx polymarket-cli snapshot 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
 **Output:**
 
 ```
-✓ Snapshot completed for 0x742d35Cc...0bEb
+✓ Snapshot taken for 0x742d35Cc...0bEb
 
-Changes Detected: 2 events
-
-  ▴ Will Bitcoin reach $100k in 2024?
-    100→200 YES shares
-
-  ◆ Will Ethereum surpass Bitcoin?
-    Resolved: NO (-$15.50)
+Generated 2 events:
+  ▴ POSITION_UPDATED       Will Bitcoin reach $100k in 2024?                    100→200 YES shares
+  ◆ MARKET_RESOLVED        Will Ethereum surpass Bitcoin?                       NO won, -$15.50
 ```
 
 ### View Events
@@ -139,11 +135,11 @@ Changes Detected: 2 events
 Display event history for a wallet:
 
 ```bash
-# Show last 20 events (default)
+# Show last 50 events (default)
 npx polymarket-cli events <wallet_address>
 
-# Show last 50 events
-npx polymarket-cli events <wallet_address> --limit 50
+# Show last 100 events
+npx polymarket-cli events <wallet_address> --limit 100
 
 # Show detailed event information
 npx polymarket-cli events <wallet_address> --verbose
@@ -158,17 +154,15 @@ npx polymarket-cli events 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb --limit 10
 **Output:**
 
 ```
-Events for 0x742d35Cc...0bEb (Last 10)
+Events for wallet 0x742d35Cc...0bEb (showing 10)
 
-┌──────────────────────┬────────────────────────────┬─────────────────────────────┐
-│ Time                 │ Event                      │ Market                      │
-├──────────────────────┼────────────────────────────┼─────────────────────────────┤
-│ 2024-12-27 10:30:00  │ POSITION_UPDATED           │ Will Bitcoin reach $100k... │
-│                      │ 100→200 YES shares         │                             │
-├──────────────────────┼────────────────────────────┼─────────────────────────────┤
-│ 2024-12-27 09:15:00  │ POSITION_OPENED            │ Will Ethereum surpass...    │
-│                      │ +150 YES shares            │                             │
-└──────────────────────┴────────────────────────────┴─────────────────────────────┘
+┌─────────────────────┬──────────────────┬────────────────────────────────────────┬───────────────────────────────────┐
+│ Time                │ Event Type       │ Market                                 │ Change                            │
+├─────────────────────┼──────────────────┼────────────────────────────────────────┼───────────────────────────────────┤
+│ 2024-12-27 10:30:00 │ POSITION_UPDATED │ Will Bitcoin reach $100k in 2024?      │ 100→200 YES shares                │
+├─────────────────────┼──────────────────┼────────────────────────────────────────┼───────────────────────────────────┤
+│ 2024-12-27 09:15:00 │ POSITION_OPENED  │ Will Ethereum surpass Bitcoin?         │ +150 YES shares                   │
+└─────────────────────┴──────────────────┴────────────────────────────────────────┴───────────────────────────────────┘
 ```
 
 ### Check System Status
@@ -184,7 +178,7 @@ npx polymarket-cli status
 ```
 System Status
 ┌─────────────────────┬───────────────────────────────────┐
-│ Database Path       │ ./data/snapshots.db               │
+│ Database Path       │ ./data/polymonitor.db              │
 │ Database Size       │ 24.5 KB                           │
 │ Database Status     │ ✓ Connected                       │
 └─────────────────────┴───────────────────────────────────┘

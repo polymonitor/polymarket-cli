@@ -5,6 +5,6 @@ export default defineConfig({
   out: "./migrations",
   dialect: "sqlite",
   dbCredentials: {
-    url: process.env.DB_PATH || "./data/polymarket.db",
+    url: process.env.DB_PATH || "./data/polymonitor.db",
   },
 });

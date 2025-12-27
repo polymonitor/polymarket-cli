@@ -145,7 +145,7 @@ function getErrorDetails(error: Error): string | null {
 
   // For database connection errors
   if (error.name === "DatabaseConnectionError") {
-    return "  Cannot open or access the database file.\n  Location: ./data/polymarket.db";
+    return "  Cannot open or access the database file.\n  Location: ./data/polymonitor.db";
   }
 
   // For database transaction errors

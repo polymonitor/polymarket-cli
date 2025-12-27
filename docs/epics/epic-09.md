@@ -64,7 +64,7 @@ Query database for various metrics:
 ```
 System Status
 ┌──────────────────────┬─────────────────────────────────┐
-│ Database Path        │ ./data/polymarket.db            │
+│ Database Path        │ ./data/polymonitor.db            │
 │ Database Size        │ 2.4 MB                          │
 │ Database Status      │ ✓ Connected                     │
 └──────────────────────┴─────────────────────────────────┘
@@ -173,7 +173,7 @@ If no snapshots exist yet:
 ```
 System Status
 ┌──────────────────────┬─────────────────────────────────┐
-│ Database Path        │ ./data/polymarket.db            │
+│ Database Path        │ ./data/polymonitor.db            │
 │ Database Size        │ 24 KB (empty)                   │
 │ Database Status      │ ✓ Connected                     │
 └──────────────────────┴─────────────────────────────────┘
@@ -190,7 +190,7 @@ Get started: npx polymarket-cli snapshot <wallet_address>
 ```
 ✗ Error: Cannot connect to database
 
-  Database path: ./data/polymarket.db
+  Database path: ./data/polymonitor.db
 
   Please ensure the database has been initialized.
 ```

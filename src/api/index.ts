@@ -16,4 +16,4 @@ export {
   createUserFriendlyError,
 } from "./errors";
 export { withRetry, DEFAULT_RETRY_CONFIG } from "./retry";
-export { transformToSnapshot, validateWalletAddress } from "./transformer";
+export { transformToSnapshot } from "./transformer";

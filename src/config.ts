@@ -2,7 +2,7 @@ import "dotenv/config";
 
 export const config = {
   database: {
-    path: process.env.DB_PATH || "./data/polymarket.db",
+    path: process.env.DB_PATH || "./data/polymonitor.db",
   },
   polymarket: {
     dataApiUrl:

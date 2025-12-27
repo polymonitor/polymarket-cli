@@ -22,7 +22,7 @@ Create a configuration module that loads all settings from environment variables
 - Export a typed config object with all application settings
 - Provide sensible defaults for all values
 - Configuration should include:
-  - Database path (default: `./data/polymarket.db`)
+  - Database path (default: `./data/polymonitor.db`)
   - Polymarket API URL (default: `https://api.polymarket.com`)
 
 **Example structure:**
@@ -32,7 +32,7 @@ import "dotenv/config";
 
 export const config = {
   database: {
-    path: process.env.DB_PATH || "./data/polymarket.db",
+    path: process.env.DB_PATH || "./data/polymonitor.db",
   },
   polymarket: {
     apiUrl: process.env.POLYMARKET_API_URL || "https://api.polymarket.com",
@@ -47,7 +47,7 @@ Ensure `.env.example` has comprehensive documentation:
 ```bash
 # Database Configuration
 # Path to SQLite database file
-DB_PATH=./data/polymarket.db
+DB_PATH=./data/polymonitor.db
 
 # Polymarket API Configuration
 # Base URL for Polymarket API

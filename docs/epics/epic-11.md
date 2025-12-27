@@ -80,7 +80,7 @@ Handle all database operation failures:
 ```typescript
 // Cannot open database
 "Cannot access database file.
-Location: ./data/polymarket.db
+Location: ./data/polymonitor.db
 Please ensure the directory exists and is writable."
 
 // Transaction failed
