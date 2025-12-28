@@ -17,7 +17,7 @@ import type { DiffEvent, EventType, Position, Snapshot } from "@/types/core";
  * Events are self-contained and include complete before/after state, making
  * them suitable for notifications without requiring additional data lookups.
  *
- * @param prevSnapshot - Previous wallet snapshot (N-1), or null for first snapshot
+ * @param prevSnapshot - Previous wallet snapshot (N-1)
  * @param currSnapshot - Current wallet snapshot (N)
  * @returns Array of DiffEvents (events without snapshotId - assigned by repository)
  *
@@ -25,23 +25,18 @@ import type { DiffEvent, EventType, Position, Snapshot } from "@/types/core";
  * ```typescript
  * const prev = await fetchPreviousSnapshot(wallet);
  * const curr = await fetchCurrentSnapshot(wallet);
- * const events = computeDiff(prev, curr);
- *
- * if (events.length > 0) {
- *   console.log(`Detected ${events.length} changes`);
- *   // Save events to database or send notifications
+ * if (prev && curr) {
+ *   const events = computeDiff(prev, curr);
+ *   if (events.length > 0) {
+ *     console.log(`Detected ${events.length} changes`);
+ *   }
  * }
  * ```
  */
 export function computeDiff(
-  prevSnapshot: Snapshot | null,
+  prevSnapshot: Snapshot,
   currSnapshot: Snapshot,
 ): DiffEvent[] {
-  // Handle first snapshot - no events to generate
-  if (prevSnapshot === null) {
-    return [];
-  }
-
   const events: DiffEvent[] = [];
 
   // Create position maps indexed by marketId for efficient lookups

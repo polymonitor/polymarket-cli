@@ -76,21 +76,9 @@ export class SnapshotService {
       const prevSnapshotData =
         await this.repos.snapshots.getLatest(validWallet);
 
-      const prevSnapshot = prevSnapshotData?.snapshot ?? null;
-      logger.info(
-        prevSnapshot
-          ? `Found previous snapshot (ID: ${prevSnapshotData!.id})`
-          : `No previous snapshot found - this is the first snapshot`,
-      );
-
-      // Step 4: Compute diff
-      logger.info(`Computing diff between snapshots`);
-      const diffEvents = computeDiff(prevSnapshot, currentSnapshot);
-      logger.info(`Diff generated ${diffEvents.length} events`);
-
-      // Step 5: Decide whether to save
-      if (prevSnapshot === null) {
-        // First snapshot - always save
+      // Step 4: Handle first snapshot (no previous exists)
+      if (!prevSnapshotData) {
+        logger.info(`No previous snapshot found - this is the first snapshot`);
         logger.info(
           `Saving first snapshot for wallet ${validWallet} (no events)`,
         );
@@ -106,6 +94,15 @@ export class SnapshotService {
         };
       }
 
+      const prevSnapshot = prevSnapshotData.snapshot;
+      logger.info(`Found previous snapshot (ID: ${prevSnapshotData.id})`);
+
+      // Step 5: Compute diff between two existing snapshots
+      logger.info(`Computing diff between snapshots`);
+      const diffEvents = computeDiff(prevSnapshot, currentSnapshot);
+      logger.info(`Diff generated ${diffEvents.length} events`);
+
+      // Step 6: Decide whether to save
       if (diffEvents.length === 0) {
         // No changes detected - don't save
         logger.info(

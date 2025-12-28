@@ -36,24 +36,6 @@ describe("computeDiff", () => {
     positions,
   });
 
-  describe("First Snapshot", () => {
-    it("should return empty array when previous snapshot is null", () => {
-      const current = createSnapshot([createPosition()]);
-      const events = computeDiff(null, current);
-
-      assert.strictEqual(events.length, 0);
-      assert.deepStrictEqual(events, []);
-    });
-
-    it("should return empty array for first snapshot with no positions", () => {
-      const current = createSnapshot([]);
-      const events = computeDiff(null, current);
-
-      assert.strictEqual(events.length, 0);
-      assert.deepStrictEqual(events, []);
-    });
-  });
-
   describe("Position Opened", () => {
     it("should detect a new position opening", () => {
       const prev = createSnapshot([]);
