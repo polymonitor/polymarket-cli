@@ -39,10 +39,14 @@ export function transformToSnapshot(
 
     if (isYesPosition) {
       position.yesShares = apiPos.size;
-      position.yesAvgPrice = apiPos.avgPrice;
+      // Clamp negative prices to 0 (API sometimes returns small negative values)
+      position.yesAvgPrice =
+        apiPos.avgPrice !== null ? Math.max(0, apiPos.avgPrice) : null;
     } else {
       position.noShares = apiPos.size;
-      position.noAvgPrice = apiPos.avgPrice;
+      // Clamp negative prices to 0 (API sometimes returns small negative values)
+      position.noAvgPrice =
+        apiPos.avgPrice !== null ? Math.max(0, apiPos.avgPrice) : null;
     }
 
     // Note: We can't determine resolution status from positions API alone

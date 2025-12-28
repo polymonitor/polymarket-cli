@@ -62,7 +62,20 @@ function getErrorTitle(error: Error): string {
   // Check error name for known types
   switch (error.name) {
     case "ValidationError":
-      return "Invalid wallet address";
+      // Distinguish between wallet address errors and other validation errors
+      if (
+        error.message.includes("wallet address") ||
+        error.message.includes("Ethereum address")
+      ) {
+        return "Invalid wallet address";
+      }
+      if (
+        error.message.includes("snapshot") ||
+        error.message.includes("schema")
+      ) {
+        return "Data validation failed";
+      }
+      return "Validation error";
     case "NetworkError":
       return "Network connection failed";
     case "RateLimitError":
@@ -114,10 +127,22 @@ function getErrorTitle(error: Error): string {
  */
 function getErrorDetails(error: Error): string | null {
   // For validation errors, show the specific validation issue
-  if (
-    error.name === "ValidationError" ||
-    error.message.includes("Invalid wallet address")
-  ) {
+  if (error.name === "ValidationError") {
+    // Check if it's specifically a wallet address error
+    if (
+      error.message.includes("wallet address") ||
+      error.message.includes("Ethereum address")
+    ) {
+      const addressMatch = error.message.match(/['"`]([^'"`]+)['"`]/);
+      const address = addressMatch ? addressMatch[1] : "provided value";
+      return `  '${address}' is not a valid Ethereum address.`;
+    }
+    // For other validation errors (schema, API response, etc.)
+    return `  ${error.message}`;
+  }
+
+  // Legacy check for wallet address errors without ValidationError name
+  if (error.message.includes("Invalid wallet address")) {
     const addressMatch = error.message.match(/['"`]([^'"`]+)['"`]/);
     const address = addressMatch ? addressMatch[1] : "provided value";
     return `  '${address}' is not a valid Ethereum address.`;
