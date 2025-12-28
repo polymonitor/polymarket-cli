@@ -59,7 +59,7 @@ To create and initialize the database with the required schema:
 mkdir -p ./data
 
 # Initialize the database by running migrations
-npx drizzle-kit push:sqlite
+npx drizzle-kit push
 ```
 
 This creates the database file and sets up all required tables.
@@ -73,7 +73,7 @@ To start fresh with a clean database:
 rm ./data/polymonitor.db
 
 # Reinitialize with migrations
-npx drizzle-kit push:sqlite
+npx drizzle-kit push
 ```
 
 Alternatively, you can change the `DB_PATH` in your `.env` file to point to a different location.
@@ -485,7 +485,7 @@ cp ./data/polymonitor.db ./data/polymonitor.db.backup
 
 # Remove and reinitialize
 rm ./data/polymonitor.db
-npx drizzle-kit push:sqlite
+npx drizzle-kit push
 ```
 
 ## Common Workflows
